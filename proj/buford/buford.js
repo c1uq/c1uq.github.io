@@ -1,50 +1,358 @@
-//setup
-	let log = console.log;
-	log("BufordJS sucessfully applied");
+
 
 //content
 	var bu = {
         bot: {
-            alge: function (string) {
-                //5a = 20
-                let evalStr = function (eStr_str) {
-                    return Function("return " + eStr_str)();
-                };
-                
-                //find a
-                let locA = 0;
-                while (locA < string.length && string.charAt(locA) !== 'a') {
-                    locA++;
+            alge: function (string, doDebug) {
+                const lockObj = bu.code.lockObj;
+                function deb(title, ...args) {
+                    let parentFuntion = "bu.bot.alge"
+                    if (doDebug) {
+                        for (let i = 0; i < args.length; i++) {
+                            //setTimeout(() => {
+                                console.log("%cDEBUG|%c|" + parentFuntion + "|%c|" + title + ":", "color: #ff0000", "color:#079127", "color:#2c9c90", args[i]);
+                            //});
+                        }
+                    }
                 }
-                log("@ a: " + locA);
                 
-                //find =
-                let locE = 0;
-                while (string.charAt(locE) !== '=') {
-                    locE++;
-                }
-                log("@ =: " + locE);
-                
-                if (locA < 1 || string.charAt(locA - 1) === ' ') {
+                function createAddArray(stringExpression) {
+                    let str = stringExpression;
+                    let arr = [];
+                    let build = "";
+                    for (let i = 0; i < str.length; i++) {
+                        if (str.charAt(i) === '+') {
+                            if (build.length > 0) {
+                                arr.push(build);
+                            }
+                            build = "";
+                        } else if (str.charAt(i) === '-') {
+                            if (build.length > 0) {
+                                arr.push(build);
+                            }
+                            build = "-";
+                        } else if (str.charAt(i) !== ' ') {
+                            build = build + str.charAt(i);
+                        }
+                    }
+                    arr.push(build);
+                    build = "";
                     
-                } else {
-                    //find # before a
-                    let multUnit = '';
-                    for (let i = locA - 1; i > -1 && string.charAt(i) !== ' '; i--) {
-                        multUnit = string.charAt(i) + multUnit;
-                    }
-                    log("# before a: " + multUnit);
-
-                    //find # after =
-                    let afterEq = '';
-                    for (let i = locE + 2; i < string.length; i++) {
-                        afterEq = afterEq + string.charAt(i);
-                    }
-                    afterEq = evalStr(afterEq);
-                    log("# after =: " +  afterEq);
-
-                    return afterEq / multUnit;
+                    deb("createAddArray", lockObj(arr));
+                    return arr;
                 }
+                
+                function separateEquation(equationString) {
+                    let exp1;
+                    let exp2;
+                    let build = "";
+                    for (let i = 0; i < equationString.length; i++) {
+                        if (equationString.charAt(i) === '=') {
+                            exp1 = createAddArray(build);
+                            build = "";
+                        } else {
+                            build = build + equationString.charAt(i);
+                        }
+                    }
+                    exp2 = createAddArray(build);
+                    deb("separateEquation", lockObj([exp1, exp2]));
+                    return [exp1, exp2];
+                }
+                
+                let memoizedIn = ["1a"];
+                let memoizedOut = [1];
+                function classify(stringNum) {
+                    if (memoizedIn.includes(stringNum)) {
+                        let output = memoizedOut[memoizedIn.indexOf(stringNum)];
+                        deb("classify//memoizedOut", output)
+                        return output;
+                    } else {
+                        let constantChar = ['-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                        let variableChar = ['-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a'];
+
+                        let bools = [true, true];
+                        for (let charNum = 0; charNum < stringNum.length; charNum++) {
+                            let char = stringNum.charAt(charNum);
+                            if (constantChar.includes(char)) {
+
+                            } else if (variableChar.includes(char)) {
+                                bools[0] = false;
+                            } else {
+                                bools[0] = false; bools[1] = false;
+                            }
+                        }
+                        
+                        let value;
+                        if (bools[0] && bools[1]) {
+                            value = 0;
+                        } else if (bools[1]) {
+                            value = 1;
+                        } else {
+                            value = 2;
+                        }
+                        
+                        memoizedIn.push(stringNum);
+                        memoizedOut.push(value);
+                        deb("classify", value);
+                        return value;
+                    }
+                }
+                
+                function addPossible (addArray) {
+                    //---------classify
+                    
+                    let constant = [];
+                    let variable = [];
+                    
+                    let returnAddArray = [];
+                    
+                    for (let arrNum = 0; arrNum < addArray.length; arrNum++) {
+                        let type = classify(addArray[arrNum]);
+                        if (type === 0) {
+                            constant.push(addArray[arrNum]);
+                        } else if (type === 1) {
+                            variable.push(addArray[arrNum]);
+                        } else {
+                            returnAddArray.push(addArray[arrNum]);
+                        }
+                    }
+                    
+                    deb("addPossible//classifications", lockObj([constant, variable, returnAddArray]));
+                    //-----------add
+                    let sum = 0;
+                    if (constant.length > 0) {
+                        for (let i = 0; i < constant.length; i++) {
+                            sum += parseFloat(constant[i]);
+                        }
+                        returnAddArray.push(sum + '');
+                    }
+                    
+                    if (variable.length > 0) {
+                        sum = 0;
+                        for (let i = 0; i < variable.length; i++) {
+                            if (isNaN(parseFloat(variable[i]))) {
+                                if (variable[i].charAt(0) === '-') {
+                                    sum += -1
+                                } else {
+                                    sum += 1
+                                }
+                            } else {
+                                sum += parseFloat(variable[i]);
+                            }
+                        }
+                        returnAddArray.push(sum + 'a');
+                    }
+                    
+                    deb("addPossible", lockObj(returnAddArray));
+                    return returnAddArray;
+                }
+                
+                function setVariabledSide(eqArr) {
+                    let returnArr = [];
+                    //determineMovement --determine if movement needed
+                    bools = [false, false];
+                    let vars = [0, 0]; //position of removable var on both sides
+                    for (let i = 0; i < eqArr[0].length; i++) { //1st side
+                        if (classify(eqArr[0][i]) === 1) {
+                            bools[0] = true;
+                            vars[0] = i;
+                        }
+                    } 
+                    for (let i = 0; i < eqArr[1].length; i++) { //2nd side
+                        if (classify(eqArr[1][i]) === 1) {
+                            bools[1] = true;
+                            vars[1] = i;
+                        }
+                    }
+                    deb("setVariabledSide//vars", lockObj(vars));
+                    
+                    if (bools[0] && bools[1]) { //remove variable
+                        let removingVar = parseFloat(eqArr[1][vars[1]]);
+                        let otherVar = parseFloat(eqArr[0][vars[0]]);
+                        removingVar *= -1;
+                        otherVar += removingVar;
+                        
+                        eqArr[0][vars[0]] = otherVar + 'a';
+                        eqArr[1].splice(vars[1], 1);
+                        if (eqArr[1].length < 1) {
+                            eqArr[1].push(0);
+                        }
+                        returnArr = eqArr;
+                    } else if (bools[1]) {      //flip sides
+                        returnArr.push(eqArr[1]);
+                        returnArr.push(eqArr[0]);
+                    } else {
+                        returnArr = eqArr;
+                    }
+                    
+                    deb("setVariabledSide", lockObj(returnArr));
+                    return returnArr;
+                }
+                
+                function removeAddition(eqArr) {
+                    let consts = [0, 0]
+                    for (let i = 0; i < eqArr[0].length; i++) {
+                        if (classify(eqArr[0][i]) === 0) {
+                            consts[0] = i;
+                        }
+                    }
+                    for (let i = 0; i < eqArr[1].length; i++) {
+                        if (classify(eqArr[1][i]) === 0) {
+                            consts[1] = i;
+                        }
+                    }
+                    let constant = parseFloat(eqArr[0][consts[0]]);
+                    eqArr[0].splice(consts[0], 1);
+                    constant *= -1;
+                    let sum = parseFloat(eqArr[1][consts[1]]) + constant;
+                    eqArr[1][consts[1]] = sum + '';
+                    
+                    deb("removeAddition", lockObj(eqArr));
+                    return eqArr;
+                }
+                
+                function completeWithMult (eqArr) {
+                    deb("completeWithMult", parseFloat(eqArr[1][0]) / parseFloat(eqArr[0][0]));
+                    return parseFloat(eqArr[1][0]) / parseFloat(eqArr[0][0]);
+                }
+                
+                function checkForSpecialAnswers(ans) {
+                    let retr = ans;
+                    if (retr === Infinity) {
+                        retr = "No Solution"
+                    } else if (isNaN(retr)) {
+                        retr = "Identity"
+                    }
+                    
+                    deb("checkForSpecialAnswers", retr);
+                    return retr;
+                }
+                
+                //phase
+                let ans = string;
+                function presolve() {
+                    function changeVariableToA (str) {
+                        let letters = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m"];
+                        let retr = str;
+                        for (let i = 0; i < str.length; i++) {
+                            if (letters.includes(str.charAt(i))) {
+                                retr = retr.substr(0, i) + 'a' + retr.substr(i + 1, retr.length);
+                            }
+                        }
+
+                        deb("changeVariableToA", retr);
+                        return retr;
+                    }
+                    ans = changeVariableToA(ans);
+                    function removeWhitespace (str) {
+                        let build = "";
+                        for (let i = 0; i < str.length; i++) {
+                            if (str.charAt(i) !== ' ') {
+                                build = build + str.charAt(i);
+                            }
+                        }
+                        return build;
+                    }
+                    ans = removeWhitespace(ans);
+                    
+                    //errors
+                    let clear = true;
+                    let errorMessage = "Error"
+                    
+                    function findVariable() {
+                        let found = false;
+                        for (let i = 0; i < ans.length; i++) {
+                            if (ans.charAt(i) === 'a') {
+                                found = true;
+                            }
+                        }
+                        
+                        if (!(found)) {
+                            clear = false;
+                            errorMessage = "Equation must have variable";
+                        }
+                        deb("findVariable", clear);
+                    } findVariable();
+                    
+                    function findEqualsAndDetectValidExpressions() {
+                        let found = false;
+                        let location;
+                        for (let i = 0; i < ans.length; i++) {
+                            if (ans.charAt(i) === '=') {
+                                found = true;
+                                location = i;
+                            }
+                        }
+                        
+                        if (!(found)) {
+                            clear = false;
+                            errorMessage = "Equation must have an equal sign";
+                        }
+                        deb("findEqualsAndDetectValidExpressions//equals", clear);
+                        
+                        found = false;
+                        let found2 = false;
+                        let exp1 = ' ' + ans.substr(0, location);
+                        let exp2 = ' ' + ans.substr(location + 1, ans.length);
+                        const acceptableValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a'];
+                        for (let i = 0; i < exp1.length; i++) {
+                            if (acceptableValues.includes(exp1.charAt(i))) {
+                                found = true;
+                            }
+                        }
+                        for (let i = 0; i < exp2.length; i++) {
+                            if (acceptableValues.includes(exp2.charAt(i))) {
+                                found2 = true;
+                            }
+                        }
+                        
+                        if (!(found && found2)) {
+                            clear = false;
+                            errorMessage = "Malformed equation";
+                        }
+                        deb("findEqualsAndDetectValidExpressions//validExp", clear);
+                    } findEqualsAndDetectValidExpressions();
+                    
+                    function detectInvalidVariable () {
+                        for (let i = 0; i < ans.length - 1; i++) {
+                            if (ans.charAt(i) === 'a' && ans.charAt(i + 1) === 'a') {
+                                clear = false;
+                                errorMessage = "Malformed variable";
+                            }
+                        }
+                        deb("detectInvalidVariable", clear);
+                    } detectInvalidVariable();
+                    
+                    
+                    
+                    if (clear) {
+                        phase1();
+                    } else {
+                        ans = undefined;
+                        console.error(errorMessage);
+                    }
+                }
+                
+                function phase1() {
+                    ans = separateEquation(ans);
+                    ans[0] = addPossible(ans[0]);
+                    ans[1] = addPossible(ans[1]);
+                    ans = setVariabledSide(ans);
+                    if (ans[0].length > 1) {
+                        ans = removeAddition(ans);
+                    }
+                    ans = completeWithMult(ans);
+                    ans = checkForSpecialAnswers(ans);
+                    
+                    return ans;
+                }
+                
+                function phase2() {
+                    
+                }
+                
+                presolve();
+                return ans;
             }
         },
 		fraction: {
@@ -130,6 +438,18 @@
 			}
 		},
 		code: {
+            keyArray: function () {
+                let string = "[";
+                document.body.addEventListener("keydown", function (e) {
+                    if (e.repeat === false) {
+                        string += '"' + e.key + '", ';
+                        console.log(string);
+                    } 
+                });
+            },
+            lockObj: function (object) {
+                return JSON.parse(JSON.stringify(object));
+            },
 			compress: function (code) {
 				let aCode = bu.code.string.pullToArr(code);
 				let retr = [];
@@ -186,5 +506,5 @@
 				}
 			},
 		}
-	}
-	
+	};
+	console.log("BufordJS successfully applied")
