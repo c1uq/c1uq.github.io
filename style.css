@@ -1,0 +1,18 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+.head {
+    background-color: #ae2320;
+}
+.head h1 {
+    margin: 0;
+    padding: 1%;
+    display: inline-block;
+}
+.head h1 .c1{
+    color: #dbcb00;
+}
+.head .browse {
+    display: inline-block;
+}

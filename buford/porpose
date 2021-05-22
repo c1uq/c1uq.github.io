@@ -1,0 +1,17 @@
+GOALS--
+    *ability to compile equation as string into computable state
+    *ability to detect what algorithms need to be used to solve the equation
+    *ability to read multiple different forms of syntax as input
+    *ability to solve complex problems with forms of debugging to follow algorithm process in case of error
+    *read numbers and variables together such as "2a"
+    *add like terms to produce simplest output without carring numbers
+    *add terms on opposite sides of the equation
+    *distribute into addible portions
+    *raise powers of variables
+    *divide variables
+    *multiply with *
+    *be able to get certain variable alone in problems with more than one variable
+
+RELEASE--
+    *0.0.1- release bu.bot.alge for interpreting syntax, debugging, reading numbers and variables together, adding like terms, adding terms on opposite side of the equation
+    *0.0.2- update bu.bot.alge for bug fixes, distributing into addible portions
