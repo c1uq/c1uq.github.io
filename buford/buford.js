@@ -132,7 +132,7 @@
                     
                     
                     initType1();
-                    console.log(phase1);
+                    //console.log(phase1);
                     if (clear) {
                         phase1();
                     } else {
