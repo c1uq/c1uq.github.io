@@ -15,3 +15,4 @@ GOALS--
 RELEASE--
     *0.0.1- release bu.bot.alge for interpreting syntax, debugging, reading numbers and variables together, adding like terms, adding terms on opposite side of the equation
     *0.0.2- update bu.bot.alge for bug fixes, distributing into addible portions
+    *0.0.3- update bu.bot.alge for bug fixes (can now distribute multiple different distributable portions)

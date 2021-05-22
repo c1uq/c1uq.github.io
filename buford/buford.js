@@ -132,7 +132,6 @@
                     
                     
                     initType1();
-                    //console.log(phase1);
                     if (clear) {
                         phase1();
                     } else {
@@ -384,9 +383,9 @@
                 }
                 
                 function distributeDistributable(addArr) { //--------------------------------distributeDistributable
-                    let arr = addArr;
-                    for (let arrayNum = 0; arrayNum < arr.length; arrayNum++) {
-                        let str = arr[arrayNum];
+                    let arr = lockObj(addArr);
+                    for (let arrayNum = 0; arrayNum < addArr.length; arrayNum++) {
+                        let str = addArr[arrayNum];
                         let arrayAddition = [];
                         
                         if (detectDistributable(str)) {
@@ -417,15 +416,15 @@
                                 arrayAddition.push(parseFloat(outside) * parseFloat(inside[1]) + 'a');
                             }
                             
-                            arr.splice(arrayNum, 1);
+                            arr.splice(arr.indexOf(addArr[arrayNum]), 1);
                             arr.push(arrayAddition[0]);
                             arr.push(arrayAddition[1]);
                         }
                         
-                        deb("distributeDistribuatable", lockObj(arr));
-                        return arr;
+                        
                     }
-                    
+                    deb("distributeDistribuatable", lockObj(arr));
+                    return arr;
                 }
                 
                 //===========================================================================
