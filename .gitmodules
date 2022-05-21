@@ -1,0 +1,3 @@
+[submodule "lib/buford2"]
+	path = lib/buford2
+	url = https://github.com/c1uq/buford2.git
